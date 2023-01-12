@@ -1,0 +1,74 @@
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+{% load custom_tags %}
+
+{% block title %}
+News
+{% endblock title %}
+
+{% block content %}
+    <h1>Новости</h1>
+    {% if is_not_subscriber %}
+        <p class="text-center"><a href="{% url 'subscribe' postCategory.id %}" class="btn btn-secondary btn-sm">Подписаться</a></p>
+    {% endif %}
+    <hr>
+
+    {% if perms.News.add_post %}
+    <a href="{% url 'post_create' %}">Создать новость</a>
+    {% endif %}
+
+    {% if category_news_list %}
+        <table>
+            <tr>
+                <td>Заголовок</td>
+                <td>Дата публикации</td>
+                <td>Содержание</td>
+                <td>Категория</td>
+
+                {% if perms.News.change_post %}
+                <td>Действия</td>
+                {% endif %}
+
+            </tr>
+            {% for id_news in category_news_list %}
+            <tr>
+                <td>{{ id_news.title|censor }}</td>
+                <td>{{ id_news.dateCreation|date:'d M Y' }}</td>
+                <td>{{ id_news.text|truncatewords:20|censor }}</td>
+                <td>
+                    {% for postCategory in id_news.postCategory.all %}
+                        <a href="{% url 'category_list' postCategory.id %}">{{ postCategory }}</a>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if perms.News.change_post %}
+                    <a href="{% url 'post_edit' pk=id_news.id %}">Изменить</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <h2>Новостей нет</h2>
+    {% endif %}
+
+    {% if page_obj.has_previous %}
+        <a href="?{% url_replace page=1 %}">1</a>
+        {% if page_obj.previous_page_number != 1 %}
+            ...
+            <a href="?{% url_replace page=page_obj.previous_page_number %}">{{ page_obj.previous_page_number }}</a>
+        {% endif %}
+    {% endif %}
+
+    {{ page_obj.number }}
+
+    {%  if page_obj.has_next %}
+        <a href="?{% url_replace page=page_obj.next_page_number %}">{{ page_obj.next_page_number }}</a>
+        {% if paginator.num_pages != page_obj.next_page_number %}
+            ...
+            <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+        {% endif %}
+    {% endif %}
+
+{% endblock content %}
